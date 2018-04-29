@@ -119,21 +119,8 @@ class ModelRooms extends RocketChat.models._Base {
 	}
 
 	findBySubscriptionUserId(userId, options) {
-		let data;
-		if (this.useCache) {
-			data = RocketChat.models.Subscriptions.findByUserId(userId).fetch();
-			data = data.map(function(item) {
-				if (item._room) {
-					return item._room;
-				}
-				console.log('Empty Room for Subscription', item);
-			});
-			data = data.filter(item => item);
-			return this.arrayToCursor(this.processQueryOptionsOnResult(data, options));
-		}
-
-		data = RocketChat.models.Subscriptions.findByUserId(userId, {fields: {rid: 1}}).fetch();
-		data = data.map(item => item.rid);
+		const data = RocketChat.models.Subscriptions.findByUserId(userId, {fields: {rid: 1}}).fetch()
+			.map(item => item.rid);
 
 		const query = {
 			_id: {
@@ -145,20 +132,8 @@ class ModelRooms extends RocketChat.models._Base {
 	}
 
 	findBySubscriptionUserIdUpdatedAfter(userId, _updatedAt, options) {
-		if (this.useCache) {
-			let data = RocketChat.models.Subscriptions.findByUserId(userId).fetch();
-			data = data.map(function(item) {
-				if (item._room) {
-					return item._room;
-				}
-				console.log('Empty Room for Subscription', item);
-			});
-			data = data.filter(item => item && item._updatedAt > _updatedAt);
-			return this.arrayToCursor(this.processQueryOptionsOnResult(data, options));
-		}
-
-		let ids = RocketChat.models.Subscriptions.findByUserId(userId, {fields: {rid: 1}}).fetch();
-		ids = ids.map(item => item.rid);
+		const ids = RocketChat.models.Subscriptions.findByUserId(userId, {fields: {rid: 1}}).fetch()
+			.map(item => item.rid);
 
 		const query = {
 			_id: {
@@ -421,98 +396,6 @@ class ModelRooms extends RocketChat.models._Base {
 		const update = {
 			$set: {
 				archived: false
-			}
-		};
-
-		return this.update(query, update);
-	}
-
-	addUsernameById(_id, username, muted) {
-		const query = {_id};
-
-		const update = {
-			$addToSet: {
-				usernames: username
-			}
-		};
-
-		if (muted) {
-			update.$addToSet.muted = username;
-		}
-
-		return this.update(query, update);
-	}
-
-	addUsernamesById(_id, usernames) {
-		const query = {_id};
-
-		const update = {
-			$addToSet: {
-				usernames: {
-					$each: usernames
-				}
-			}
-		};
-
-		return this.update(query, update);
-	}
-
-	addUsernameByName(name, username) {
-		const query = {name};
-
-		const update = {
-			$addToSet: {
-				usernames: username
-			}
-		};
-
-		return this.update(query, update);
-	}
-
-	removeUsernameById(_id, username) {
-		const query = {_id};
-
-		const update = {
-			$pull: {
-				usernames: username
-			}
-		};
-
-		return this.update(query, update);
-	}
-
-	removeUsernamesById(_id, usernames) {
-		const query = {_id};
-
-		const update = {
-			$pull: {
-				usernames: {
-					$in: usernames
-				}
-			}
-		};
-
-		return this.update(query, update);
-	}
-
-	removeUsernameFromAll(username) {
-		const query = {usernames: username};
-
-		const update = {
-			$pull: {
-				usernames: username
-			}
-		};
-
-		return this.update(query, update, { multi: true });
-	}
-
-	removeUsernameByName(name, username) {
-		const query = {name};
-
-		const update = {
-			$pull: {
-				usernames: username
 			}
 		};
 
